@@ -9,7 +9,7 @@ RUN pip install -r requirements.txt
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONIOENCODING=UTF-8
 
-EXPOSE 8080
+EXPOSE 8501
 
 # This sets the default command for the container to run the app with Streamlit.
 ENTRYPOINT ["streamlit", "run"]
