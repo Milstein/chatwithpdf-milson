@@ -11,7 +11,7 @@ QDRANT_URL = os.getenv('QDRANT_URL')
 QDRANT_PORT = os.getenv('QDRANT_PORT')
 QDRANT_API_KEY = os.getenv('QDRANT_API_KEY')
 
-# QdrantClient(QDRANT_URL, port=443, api_key=QDRANT_API_KEY)
+# QdrantClient(QDRANT_URL, port=QDRANT_PORT, api_key=QDRANT_API_KEY)
 
 # LLAMA Server connection parameters
 LLAMA_HOST = os.getenv('LLAMA_HOST')
