@@ -15,21 +15,28 @@ from langchain.text_splitter import CharacterTextSplitter
 from langchain.vectorstores.qdrant import Qdrant
 from loguru import logger
 from pypdf import PdfReader
+from langchain_ollama import OllamaLLM
+from langchain_ollama import OllamaEmbeddings
+from langchain_qdrant import QdrantVectorStore
 
 # Get a few environment variables. These are so we:
 # - Know what endpoint we should request
 # - Set server name and port for Gradio
-URL = os.getenv("INFERENCE_ENDPOINT")                       # You need to manually set this with an environment variable
+# LLM_URL = os.environ.get("PDFCHAT_LLM_URL")
+LLM_URL = os.getenv("INFERENCE_ENDPOINT")                       # You need to manually set this with an environment variable
 GRADIO_SERVER_PORT = int(os.getenv("GRADIO_SERVER_PORT"))   # Automatically set by the Dockerfile
 GRADIO_SERVER_NAME = os.getenv("GRADIO_SERVER_NAME")        # Automatically set by the Dockerfile
 
-MODEL_CALM2 = "cyberagent/calm2-7b-chat"
+# MODEL_CALM2 = "cyberagent/calm2-7b-chat"
+MODEL_CALM2 = "phi3:14b"
+BASE_URL = "https://ollama-nerc-demo-5b7ce1.apps.shift.nerc.mghpcc.org/"
+
 text_splitter = CharacterTextSplitter(
     separator="\n\n",
     chunk_size=1000,
     chunk_overlap=0,
 )
-QDRANT_MODE = "local"
+QDRANT_MODE = "cloud"
 if QDRANT_MODE == "local":
     QDRANT_CLIENT_CONFIG = {
         "path": "./local_qdrant",
@@ -44,19 +51,17 @@ elif QDRANT_MODE == "cloud":
             "Please set the QDRANT_URL and QDRANT_API_KEY environment variables."
         )
 COLLECTION_NAME = "pdfchat"
-PROMPT_TEMPLATE = """以下の文脈を利用して、最後の質問に答えなさい。
-答えがわからない場合は、わからないと答えてください。
+PROMPT_TEMPLATE = """Use the following context to answer the final question.
+If you don't know the answer, say you don't know.
 
-【文脈】
+【Context】
 {context}
 
-【質問】
+【Question】
 {question}
 
-【答え】
+【Answer】
 """
-LLM_URL = os.environ.get("PDFCHAT_LLM_URL")
-
 
 @dataclass
 class Chat:
@@ -140,12 +145,15 @@ def retrieve_relevant_documents(query: str, document: str | None) -> list[str]:
     if not document:
         return "No document is uploaded. Please upload a document."
 
-    OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
-    if not OPENAI_API_KEY:
-        raise ValueError("Please set the OPENAI_API_KEY environment variable.")
+    # OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
+    # if not OPENAI_API_KEY:
+    #     raise ValueError("Please set the OPENAI_API_KEY environment variable.")
 
     documents = text_splitter.split_text(document)
-    embeddings = OpenAIEmbeddings(openai_api_key=OPENAI_API_KEY)
+    # embeddings = OpenAIEmbeddings(openai_api_key=OPENAI_API_KEY)
+
+    # Initialize the model and embedding
+    embeddings = OllamaEmbeddings(model=MODEL_CALM2, base_url=BASE_URL)
 
     db = Qdrant.from_texts(
         texts=documents,
@@ -253,11 +261,11 @@ with gr.Blocks() as app:
         examples=[
             [
                 "data/sample.pdf",
-                "胃がん手術の説明書の要点を箇条書きで要約してください",
+                "Please summarize the key points of the stomach cancer surgery instruction sheet in bullet points",
             ],
             [
                 "data/sample2.pdf",
-                "面会時間について教えてください",
+                "Please tell me about the visiting hours",
             ],
         ],
         inputs=[file_box, text_box],
