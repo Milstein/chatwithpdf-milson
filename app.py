@@ -9,7 +9,7 @@ from pathlib import Path
 import gradio as gr
 import requests
 from gradio_pdf import PDF
-from langchain.embeddings.openai import OpenAIEmbeddings
+from langchain_community.embeddings import OpenAIEmbeddings
 from langchain.prompts import PromptTemplate
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.vectorstores.qdrant import Qdrant
@@ -265,4 +265,4 @@ with gr.Blocks() as app:
         fn=lambda model_name, document: None,
     )
 
-app.queue().launch()
+app.queue().launch(server_name=GRADIO_SERVER_NAME, server_port=GRADIO_SERVER_PORT)
