@@ -68,4 +68,3 @@ python-dateutil
 python-multipart
 pytz
 pyyaml
-qdrant-cl
