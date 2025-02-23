@@ -6,13 +6,37 @@ from embedchain import App
 import base64
 from streamlit_chat import message
 
+# Qdrant connection parameters
+QDRANT_URL = os.getenv('QDRANT_URL')
+QDRANT_PORT = os.getenv('QDRANT_PORT')
+QDRANT_API_KEY = os.getenv('QDRANT_API_KEY')
+
+# QdrantClient(QDRANT_URL, port=443, api_key=QDRANT_API_KEY)
+
+# LLAMA Server connection parameters
+LLAMA_HOST = os.getenv('LLAMA_HOST')
+
+# MODEL = "deepseek-r1:32b"
+MODEL = "llama3.3:latest"
+
+# # Initialize the model and embedding
+# model = OllamaLLM(model=MODEL, base_url=BASE_URL)
+# embedding = OllamaEmbeddings(model=MODEL, base_url=BASE_URL)
+
 # Define the embedchain_bot function
 def embedchain_bot(db_path):
     return App.from_config(
         config={
-            "llm": {"provider": "ollama", "config": {"model": "llama3.3:latest", "max_tokens": 250, "temperature": 0.5, "stream": True, "base_url": 'http://localhost:11434'}},
-            "vectordb": {"provider": "chroma", "config": {"dir": db_path}},
-            "embedder": {"provider": "ollama", "config": {"model": "llama3.3:latest", "base_url": 'http://localhost:11434'}},
+            "llm": {"provider": "ollama", "config": {"model": "MODEL", "max_tokens": 250, "temperature": 0.5, "stream": True, "base_url": 'LLAMA_HOST'}},
+            "vector_store": {"provider": "qdrant",
+                "config": {
+                    "collection_name": "llm_app_memory",
+                    "host": "QDRANT_URL",
+                    "port": "QDRANT_PORT",
+                    "api_key": "QDRANT_API_KEY",
+                }
+            },
+            "embedder": {"provider": "ollama", "config": {"model": "MODEL", "base_url": 'LLAMA_HOST'}},
         }
     )
 
